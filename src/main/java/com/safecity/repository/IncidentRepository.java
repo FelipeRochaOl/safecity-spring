@@ -8,10 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
-
 @Repository
-public interface IncidentRepository extends JpaRepository<Incident, UUID> {
+public interface IncidentRepository extends JpaRepository<Incident, Long> {
     
     List<Incident> findByUserOrderByCreatedAtDesc(User user);
     

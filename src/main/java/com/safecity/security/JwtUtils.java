@@ -24,7 +24,15 @@ public class JwtUtils {
     private int jwtExpirationMs;
     
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        // Use a fixed 256-bit key for testing
+        String fixedKey = "safecitySecretKeyForJWTTokenGeneration2024SafeCityProjectSecretKeyMustBeAtLeast32CharactersLong";
+        byte[] keyBytes = fixedKey.getBytes();
+        
+        // Ensure we have exactly 32 bytes
+        byte[] finalKey = new byte[32];
+        System.arraycopy(keyBytes, 0, finalKey, 0, Math.min(keyBytes.length, 32));
+        
+        return Keys.hmacShaKeyFor(finalKey);
     }
     
     public String generateJwtToken(Authentication authentication) {

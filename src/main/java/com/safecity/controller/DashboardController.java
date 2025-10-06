@@ -7,6 +7,12 @@ import com.safecity.model.User;
 import com.safecity.repository.IncidentRepository;
 import com.safecity.repository.NotificationRepository;
 import com.safecity.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +26,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/dashboard")
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Dashboard", description = "APIs para dashboard administrativo - Apenas para administradores")
+@SecurityRequirement(name = "Bearer Authentication")
 public class DashboardController {
     
     @Autowired
@@ -31,6 +39,8 @@ public class DashboardController {
     @Autowired
     NotificationRepository notificationRepository;
     
+    @Operation(summary = "Estatísticas do dashboard", description = "Retorna estatísticas gerais do sistema para o dashboard administrativo")
+    @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();

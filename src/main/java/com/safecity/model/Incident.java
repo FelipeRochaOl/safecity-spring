@@ -4,19 +4,18 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "incidents")
 public class Incident {
     
     @Id
-    @UuidGenerator
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "incident_seq")
+    @SequenceGenerator(name = "incident_seq", sequenceName = "INCIDENT_SEQ", allocationSize = 1)
+    @Column(name = "id", updatable = false, nullable = false)
+    private Long id;
     
     @NotBlank
     @Size(max = 200)
@@ -85,8 +84,8 @@ public class Incident {
     }
     
     // Getters and Setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }

@@ -6,6 +6,12 @@ import com.safecity.dto.RegisterRequest;
 import com.safecity.model.User;
 import com.safecity.repository.UserRepository;
 import com.safecity.security.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +24,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "APIs para autenticação e registro de usuários")
 public class AuthController {
     
     @Autowired
@@ -37,6 +43,13 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
     
+    @Operation(summary = "Login de usuário", description = "Autentica um usuário e retorna um token JWT")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso",
+                content = @Content(schema = @Schema(implementation = JwtResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos")
+    })
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         
@@ -57,6 +70,11 @@ public class AuthController {
         );
     }
     
+    @Operation(summary = "Registro de usuário", description = "Registra um novo usuário no sistema")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuário registrado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Email já está em uso ou dados inválidos")
+    })
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         Map<String, String> response = new HashMap<>();
