@@ -87,6 +87,13 @@ public class ChatBotService {
                 - Explique os resultados de forma clara e objetiva
                 - Forneça insights e recomendações quando apropriado
                 
+                IMPORTANTE - Sintaxe SQL Oracle:
+                - NÃO use LIMIT. Use FETCH FIRST n ROWS ONLY
+                - Exemplo: SELECT * FROM incidents ORDER BY created_at DESC FETCH FIRST 10 ROWS ONLY
+                - Para paginação use: OFFSET n ROWS FETCH NEXT m ROWS ONLY
+                - Use TO_DATE para conversão de datas
+                - Strings devem usar aspas simples, não duplas
+                
                 Sempre responda em português do Brasil de forma profissional e útil.
                 """;
     }
@@ -206,6 +213,8 @@ public class ChatBotService {
                 // Extrair SQL da resposta
                 String sqlQuery = extractSQLQuery(aiResponse);
                 if (sqlQuery != null && !sqlQuery.isEmpty()) {
+                    // Converter SQL para sintaxe Oracle
+                    sqlQuery = convertToOracleSQL(sqlQuery);
                     response.setSqlQuery(sqlQuery);
                     
                     // Executar query (apenas SELECTs por segurança)
@@ -228,6 +237,38 @@ public class ChatBotService {
         }
 
         return response;
+    }
+
+    /**
+     * Converte SQL para sintaxe Oracle
+     */
+    private String convertToOracleSQL(String sql) {
+        if (sql == null || sql.isEmpty()) {
+            return sql;
+        }
+
+        // Converter LIMIT para FETCH FIRST
+        // Padrão: LIMIT n
+        String converted = sql.replaceAll(
+            "(?i)LIMIT\\s+(\\d+)\\s*$",
+            "FETCH FIRST $1 ROWS ONLY"
+        );
+
+        // Converter LIMIT com OFFSET
+        // Padrão: LIMIT n OFFSET m
+        converted = converted.replaceAll(
+            "(?i)LIMIT\\s+(\\d+)\\s+OFFSET\\s+(\\d+)",
+            "OFFSET $2 ROWS FETCH NEXT $1 ROWS ONLY"
+        );
+
+        // Converter OFFSET antes de LIMIT (ordem invertida)
+        // Padrão: OFFSET m LIMIT n
+        converted = converted.replaceAll(
+            "(?i)OFFSET\\s+(\\d+)\\s+LIMIT\\s+(\\d+)",
+            "OFFSET $1 ROWS FETCH NEXT $2 ROWS ONLY"
+        );
+
+        return converted;
     }
 
     /**
