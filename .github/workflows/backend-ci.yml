@@ -1,0 +1,85 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  build:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+
+    services:
+      oracle:
+        image: gvenzl/oracle-xe:21-slim
+        env:
+          ORACLE_PASSWORD: oracle
+          APP_USER: safecity_user
+          APP_USER_PASSWORD: safecity_password
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd healthcheck.sh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Wait for Oracle to be ready
+        run: |
+          echo "Waiting for Oracle Database..."
+          sleep 30
+
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+
+      - name: Run Tests
+        run: mvn test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:oracle:thin:@localhost:1521/XEPDB1
+          SPRING_DATASOURCE_USERNAME: safecity_user
+          SPRING_DATASOURCE_PASSWORD: safecity_password
+
+      - name: Generate Test Report
+        if: always()
+        run: mvn surefire-report:report
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: target/surefire-reports/
+
+      - name: Build JAR
+        run: mvn package -DskipTests
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safecity-backend-jar
+          path: target/*.jar
+          retention-days: 7
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "### ✅ Backend Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Java Version:** 17" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Tool:** Maven" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

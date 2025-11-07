@@ -25,8 +25,8 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/dashboard")
-@PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Dashboard", description = "APIs para dashboard administrativo - Apenas para administradores")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+@Tag(name = "Dashboard", description = "APIs para dashboard administrativo - Usuários autenticados")
 @SecurityRequirement(name = "Bearer Authentication")
 public class DashboardController {
     
